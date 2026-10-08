@@ -1,4 +1,10 @@
-minApiVersion=102
+id=autostartfcm
+name=AutoStart FCM Hook
+version=1.0-api102
+versionCode=102
+author=manhtranatam1999
+description=HyperOS AutoStart hook for Zalo, GMS and GSF.
+minApiVersion=101
 targetApiVersion=102
 staticScope=true
 exceptionMode=protective
