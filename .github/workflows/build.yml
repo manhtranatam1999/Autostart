@@ -44,6 +44,17 @@ jobs:
 
       - name: Sign APK
         run: |
+          set -e
+
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+
+          echo "Android SDK: $ANDROID_HOME"
+          echo "Build Tools: $BUILD_TOOLS"
+
+          echo "Checking tools:"
+          "$BUILD_TOOLS/zipalign" -h >/dev/null
+          "$BUILD_TOOLS/apksigner" version
+
           keytool -genkeypair \
             -v \
             -keystore release.keystore \
@@ -64,11 +75,14 @@ jobs:
 
           echo "Unsigned APK: $UNSIGNED_APK"
 
-          zipalign -f -p 4 \
+          "$BUILD_TOOLS/zipalign" \
+            -f \
+            -p \
+            4 \
             "$UNSIGNED_APK" \
             app-release-aligned.apk
 
-          apksigner sign \
+          "$BUILD_TOOLS/apksigner" sign \
             --ks release.keystore \
             --ks-key-alias autostart \
             --ks-pass pass:android \
@@ -76,11 +90,13 @@ jobs:
             --out app-release.apk \
             app-release-aligned.apk
 
-          apksigner verify --verbose app-release.apk
+          echo "Verifying signed APK..."
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: AutoStartFCMHook-api102
-          path: app-release.apk
-          if-no-files-found: error
+          "$BUILD_TOOLS/apksigner" verify \
+            --verbose \
+            app-release.apk
+
+          echo "Signed APK created successfully:"
+          ls -lh app-release.apk
+
+     
