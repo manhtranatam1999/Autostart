@@ -1,0 +1,8 @@
+plugins { id 'com.android.application' }
+
+android { namespace 'com.manhtranatam.autostartfcm'; compileSdk 36
+    defaultConfig { applicationId 'com.manhtranatam.autostartfcm'; minSdk 26; targetSdk 36; versionCode 102; versionName '1.0-api102' }
+    buildTypes { release { minifyEnabled false } }
+}
+
+dependencies { compileOnly 'io.github.libxposed:api:102.0.0' }
