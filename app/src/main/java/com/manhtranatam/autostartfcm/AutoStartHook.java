@@ -1,4 +1,4 @@
-package com.viet.autostartfcm;
+package com.manhtranatam.autostartfcm;
 
 import android.util.Log;
 
