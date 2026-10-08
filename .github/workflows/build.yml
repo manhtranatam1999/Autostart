@@ -34,15 +34,53 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: Build APK
-        run: gradle assembleRelease --no-daemon
+        run: |
+          gradle assembleRelease --no-daemon
 
       - name: Find APK
         run: |
+          echo "APK files:"
           find app/build/outputs -type f -name "*.apk" -print
+
+      - name: Sign APK
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore release.keystore \
+            -alias autostart \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=AutoStartFCM,O=AutoStartFCM,C=VN"
+
+          UNSIGNED_APK=$(find app/build/outputs -type f -name "*unsigned.apk" | head -n 1)
+
+          if [ -z "$UNSIGNED_APK" ]; then
+            echo "ERROR: Unsigned APK not found"
+            exit 1
+          fi
+
+          echo "Unsigned APK: $UNSIGNED_APK"
+
+          zipalign -f -p 4 \
+            "$UNSIGNED_APK" \
+            app-release-aligned.apk
+
+          apksigner sign \
+            --ks release.keystore \
+            --ks-key-alias autostart \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out app-release.apk \
+            app-release-aligned.apk
+
+          apksigner verify --verbose app-release.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: AutoStartFCMHook-api102
-          path: app/build/outputs/**/*.apk
+          path: app-release.apk
           if-no-files-found: error
