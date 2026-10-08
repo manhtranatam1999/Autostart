@@ -37,6 +37,44 @@ jobs:
         run: |
           gradle assembleRelease --no-daemon
 
+      - name: Verify module files
+        run: |
+          set -e
+
+          APK=$(find app/build/outputs -type f -name "*unsigned.apk" | head -n 1)
+
+          if [ -z "$APK" ]; then
+            echo "ERROR: Unsigned APK not found"
+            exit 1
+          fi
+
+          echo "APK: $APK"
+
+          echo
+          echo "=== java_init.list ==="
+          unzip -p "$APK" META-INF/xposed/java_init.list
+
+          echo
+          echo "=== DEX files ==="
+          unzip -l "$APK" | grep -E "classes[0-9]*\.dex"
+
+          echo
+          echo "=== AutoStartHook source ==="
+          grep -n "class AutoStartHook" \
+            app/src/main/java/com/manhtranatam/autostartfcm/AutoStartHook.java
+
+          echo
+          echo "=== Package declaration ==="
+          head -n 5 \
+            app/src/main/java/com/manhtranatam/autostartfcm/AutoStartHook.java
+
+          echo
+          echo "=== APK META-INF/xposed files ==="
+          unzip -l "$APK" | grep "META-INF/xposed/"
+
+          echo
+          echo "Verification completed successfully."
+
       - name: Find APK
         run: |
           echo "APK files:"
